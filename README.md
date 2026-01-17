@@ -1,4 +1,4 @@
 # 💤 LazyVim
 
-A starter template for [LazyVim](https://github.com/LazyVim/LazyVim).
-Refer to the [documentation](https://lazyvim.github.io/installation) to get started.
+修改自 [LazyVim](https://github.com/LazyVim/LazyVim).
+尽力使用spacemacs快捷键绑定
