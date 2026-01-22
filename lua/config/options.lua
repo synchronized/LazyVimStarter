@@ -8,7 +8,7 @@ local float = require("utils.float_window")
 local function show_plugin_config(name)
   local plugin = require("lazy.core.config").plugins[name]
   if plugin then
-    local content = vim.inspect(plugin.opts, { depth = 4 })
+    local content = vim.inspect(plugin.opts, { depth = 10 })
     float.create({ title = "插件配置详细信息" }):set_content(content)
   else
     vim.notify("插件未找到: " .. name)
@@ -34,4 +34,20 @@ vim.api.nvim_create_user_command("SundayListPlugin", function()
     table.insert(content, "plugin.name:" .. plugin.name)
   end
   float.create({ title = "插件列表" }):set_content(content)
+end, {})
+
+-- 查看所有可用的缓冲区选项
+local function list_buffer_options()
+  local buf = vim.api.nvim_get_current_buf()
+  local bo = vim.bo[buf]
+
+  local content = {}
+  table.insert(content, "📋 vim.bo 缓冲区选项列表:")
+  table.insert(content, string.rep("=", 60))
+
+  float.create({ title = "当前buffer属性" }):set_content(content)
+end
+
+vim.api.nvim_create_user_command("SundayCurrentBufferDesc", function()
+  list_buffer_options()
 end, {})

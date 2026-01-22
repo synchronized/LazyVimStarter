@@ -10,6 +10,7 @@ local function remove_default_keymap()
   vim.keymap.del("n", "<C-l>")
 
   -- 也检查其他模式
+  local content = {}
   local modes = { "n", "x" }
   for _, mode in ipairs(modes) do
     local mappings = vim.api.nvim_get_keymap(mode) -- normal 模式
@@ -18,11 +19,13 @@ local function remove_default_keymap()
       -- 检查是否以 <leader><Tab> 开头
       if map.lhs:match("^ <Tab>") or map.lhs:match("^ <tab>") then
         -- 删除这个映射
-        vim.keymap.del("n", map.lhs)
+        vim.keymap.del(mode, map.lhs)
         print("已删除: " .. map.lhs)
+        table.insert(content, table.concat({ "已删除: mode:", mode, ", key:", map.lhs }, ""))
       end
     end
   end
+  --vim.notify(table.concat(content, "\n"), vim.log.levels.DEBUG)
 end
 
 remove_default_keymap()
@@ -32,7 +35,19 @@ local function current_file_symbol_jump()
   -- 有 LSP 连接，尝试使用 LSP 符号跳转
   local lsp_clients = vim.lsp.get_clients({ bufnr = 0 })
   if #lsp_clients > 0 then
-    local ok, _ = pcall(require("telescope.builtin").lsp_document_symbols)
+    local ok, _ = pcall(require("telescope.builtin").lsp_document_symbols, {
+      symbols = {
+        "Class",
+        "Function",
+        "Method",
+        "Constructor",
+        "Interface",
+        "Module",
+        "Struct",
+        "Trait",
+        "Property",
+      },
+    })
     if ok then
       return -- LSP 符号跳转成功，直接返回
     end
@@ -114,11 +129,10 @@ local function current_file_browser(opts)
   return base_path
 end
 
--- 工程最近
 local function workspace_recently_files()
-  require("telescope.builtin").oldfiles({
-    cwd = vim.loop.cwd(),
-    cwd_only = true,
+  require("telescope").extensions.frecency.frecency({
+    workspace = "CWD",
+    --path_display = { "shorten" },
   })
 end
 
@@ -142,26 +156,16 @@ end
 vim.keymap.set("n", "<leader><tab>", last_buffer, { desc = "上一个缓冲区" })
 vim.keymap.set("n", "<leader>bb", "<cmd>Telescope buffers<cr>", { desc = "缓冲区列表" })
 vim.keymap.set("n", "<leader>ff", current_file_browser, { desc = "查找文件(当前目录)" })
-vim.keymap.set("n", "<leader>pf", workspace_recently_files, { desc = "查找文件(工程)" })
 vim.keymap.set("n", "<leader>sj", current_file_symbol_jump, { desc = "智能符号跳转" })
 
-vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "实时搜索" })
-vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "帮助" })
+vim.keymap.set("n", "<leader>pf", workspace_recently_files, { desc = "查找文件(工程)" })
 
--- 通知历史（使用内置功能）
-vim.keymap.set("n", "<leader>fn", "<cmd>Telescope notify<cr>", { desc = "通知历史" })
-
--- 其他
-vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>", { desc = "最近文件" })
-vim.keymap.set("n", "<leader>fr", "<cmd>Telescope registers<cr>", { desc = "寄存器" })
-vim.keymap.set("n", "<leader>fk", "<cmd>Telescope keymaps<cr>", { desc = "快捷键" })
-
--- Git
-vim.keymap.set("n", "<leader>gc", "<cmd>Telescope git_commits<cr>", { desc = "提交记录" })
-vim.keymap.set("n", "<leader>gs", "<cmd>Telescope git_status<cr>", { desc = "Git 状态" })
-
--- LSP
-vim.keymap.set("n", "<leader>ls", "<cmd>Telescope lsp_document_symbols<cr>", { desc = "文档符号" })
-vim.keymap.set("n", "<leader>lS", "<cmd>Telescope lsp_workspace_symbols<cr>", { desc = "工作区符号" })
-
-vim.keymap.set("n", "<leader>ats", "<cmd>Telescope lsp_workspace_symbols<cr>", { desc = "工作区符号" })
+--vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "实时搜索" })
+--vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "帮助" })
+--
+---- 其他
+--vim.keymap.set("n", "<leader>fr", "<cmd>Telescope registers<cr>", { desc = "寄存器" })
+--vim.keymap.set("n", "<leader>fk", "<cmd>Telescope keymaps<cr>", { desc = "快捷键" })
+--
+---- LSP
+--vim.keymap.set("n", "<leader>lS", "<cmd>Telescope lsp_workspace_symbols<cr>", { desc = "工作区符号" })
